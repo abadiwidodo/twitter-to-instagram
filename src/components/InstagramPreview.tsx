@@ -73,10 +73,11 @@ export function InstagramPreview({ content, style, author }: InstagramPreviewPro
           ref={previewRef}
           className="w-full h-full flex flex-col justify-center relative"
           style={{
-            background: style.backgroundColor,
+            backgroundColor: style.backgroundColor,
             backgroundImage: style.backgroundImage ? `url(${style.backgroundImage})` : undefined,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
             padding: style.padding
           }}
         >

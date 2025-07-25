@@ -72,13 +72,36 @@ export function suggestBackgroundTheme(text: string): BackgroundTheme {
   return bestTheme;
 }
 
-// Generate Unsplash URL based on text content
+// Generate random background image URL based on text content
 export function generateBackgroundImage(text: string): string {
-  const keywords = extractKeywords(text);
-  const query = keywords.slice(0, 3).join(',') || 'abstract,minimal';
+  // For future use when implementing keyword-based image selection with different APIs
+  // const keywords = extractKeywords(text);
+  // const query = keywords.slice(0, 2).join(' ') || 'abstract minimal';
   
-  // Use Unsplash Source API for random images
-  return `https://source.unsplash.com/1080x1080/?${encodeURIComponent(query)}`;
+  // Use Picsum (Lorem Picsum) for random images with blur effect
+  // Adding text hash to make images consistent for same content
+  const seed = text.length + text.charCodeAt(0);
+  const picsum = `https://picsum.photos/1080/1080?blur=1&random=${seed}`;
+  
+  // For now, return Picsum as it's free and doesn't require API key
+  return picsum;
+}
+
+// Alternative function for Unsplash API (when you have an API key)
+export function generateUnsplashImage(text: string, accessKey: string): string {
+  const keywords = extractKeywords(text);
+  const query = keywords.slice(0, 2).join(' ') || 'abstract minimal';
+  
+  return `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&w=1080&h=1080&client_id=${accessKey}`;
+}
+
+// Alternative function for Pexels API (when you have an API key)
+export function generatePexelsImageUrl(text: string): string {
+  const keywords = extractKeywords(text);
+  const query = keywords.slice(0, 2).join(' ') || 'abstract minimal';
+  
+  // This returns the API endpoint - you'll need to fetch it to get the actual image URL
+  return `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1&orientation=square`;
 }
 
 function extractKeywords(text: string): string[] {
