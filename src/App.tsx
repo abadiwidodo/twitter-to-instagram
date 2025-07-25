@@ -1,11 +1,21 @@
 import React, { useState, useCallback } from 'react';
-import { Twitter, Instagram, Copy, Check, ArrowRight, Sparkles } from 'lucide-react';
+import { Twitter, Instagram, Copy, Check, ArrowRight, Sparkles, LogIn } from 'lucide-react';
 import { convertTwitterToInstagram } from './utils/converter';
 import { TwitterUrlInput } from './components/TwitterUrlInput';
 import { StyleCustomizer } from './components/StyleCustomizer';
 import { InstagramPreview } from './components/InstagramPreview';
+import { AuthModal } from './components/AuthModal';
+import { UserProfile } from './components/UserProfile';
+import { AuthLoadingOverlay } from './components/LoadingSpinner';
+import { SavePostButton } from './components/SavePostButton';
 import { InstagramStyle, BackgroundTheme } from './types';
 import { suggestBackgroundTheme } from './utils/backgroundGenerator';
+import { useAuth } from './contexts/AuthContext';
+
+// Import test utility in development
+if (import.meta.env.DEV) {
+  import('./utils/imageTest');
+}
 
 function App() {
   const [twitterPost, setTwitterPost] = useState('');
@@ -14,6 +24,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [author, setAuthor] = useState('');
   const [suggestedTheme, setSuggestedTheme] = useState<BackgroundTheme | undefined>();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [instagramStyle, setInstagramStyle] = useState<InstagramStyle>({
     fontFamily: 'Inter, sans-serif',
     fontSize: '20px',
@@ -22,6 +33,8 @@ function App() {
     textAlign: 'center',
     padding: '60px'
   });
+
+  const { user } = useAuth();
 
   const handleTwitterInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -66,19 +79,39 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50">
+      {/* Auth Loading Overlay */}
+      <AuthLoadingOverlay />
+      
       {/* Header */}
       <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <Twitter className="w-6 h-6 text-blue-500" />
-              <ArrowRight className="w-5 h-5 text-gray-400" />
-              <Instagram className="w-6 h-6 text-pink-500" />
-              <Sparkles className="w-5 h-5 text-purple-500" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center space-x-3 flex-1">
+              <div className="flex items-center space-x-2">
+                <Twitter className="w-6 h-6 text-blue-500" />
+                <ArrowRight className="w-5 h-5 text-gray-400" />
+                <Instagram className="w-6 h-6 text-pink-500" />
+                <Sparkles className="w-5 h-5 text-purple-500" />
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-pink-600 bg-clip-text text-transparent">
+                Styled Post Converter
+              </h1>
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-pink-600 bg-clip-text text-transparent">
-              Styled Post Converter
-            </h1>
+            
+            {/* Authentication Section */}
+            <div className="flex items-center space-x-3">
+              {user ? (
+                <UserProfile />
+              ) : (
+                <button
+                  onClick={() => setAuthModalOpen(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-sm"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span className="font-medium">Sign In</span>
+                </button>
+              )}
+            </div>
           </div>
           <p className="text-center text-gray-600 mt-2 text-sm">
             Transform Twitter posts into beautifully styled Instagram content
@@ -139,24 +172,34 @@ function App() {
                 <h2 className="text-xl font-semibold text-gray-900">Instagram Post</h2>
               </div>
               
-              {instagramPost && (
-                <button
-                  onClick={copyToClipboard}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg hover:from-orange-600 hover:to-pink-600 transition-all duration-200 transform hover:scale-105 shadow-md"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span className="text-sm font-medium">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4" />
-                      <span className="text-sm font-medium">Copy</span>
-                    </>
-                  )}
-                </button>
-              )}
+              <div className="flex items-center space-x-3">
+                <SavePostButton
+                  twitterContent={twitterPost}
+                  instagramContent={instagramPost}
+                  style={instagramStyle}
+                  author={author}
+                  disabled={!instagramPost}
+                />
+                
+                {instagramPost && (
+                  <button
+                    onClick={copyToClipboard}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg hover:from-orange-600 hover:to-pink-600 transition-all duration-200 transform hover:scale-105 shadow-md"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span className="text-sm font-medium">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        <span className="text-sm font-medium">Copy</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
             
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
@@ -201,6 +244,7 @@ function App() {
             style={instagramStyle}
             onStyleChange={setInstagramStyle}
             suggestedTheme={suggestedTheme}
+            twitterContent={twitterPost}
           />
           <InstagramPreview 
             content={instagramPost}
@@ -274,6 +318,9 @@ function App() {
           </p>
         </div>
       </footer>
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 }

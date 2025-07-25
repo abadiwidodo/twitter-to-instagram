@@ -30,3 +30,24 @@ export interface BackgroundTheme {
   textColor: string;
   description: string;
 }
+
+export interface UserPreferences {
+  id?: string;
+  user_id: string;
+  default_style: InstagramStyle;
+  favorite_themes: string[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SavedPost {
+  id?: string;
+  user_id: string;
+  title: string;
+  twitter_content: string;
+  instagram_content: string;
+  style: InstagramStyle;
+  author?: string;
+  created_at?: string;
+  updated_at?: string;
+}
